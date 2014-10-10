@@ -33,25 +33,11 @@
 #import <UIKit/UIKit.h>
 
 @interface RKDropdownAlert : UIButton
+- (void)show;
 
-
-//%%% Additions: title, message, time, background color, text color
-
-+(void)show;
-+(void)title:(NSString*)title;
-+(void)title:(NSString*)title time:(NSInteger)seconds;
-+(void)title:(NSString*)title backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor;
-+(void)title:(NSString*)title backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor time:(NSInteger)seconds;
-
-+(void)title:(NSString*)title message:(NSString*)message;
-+(void)title:(NSString*)title message:(NSString*)message time:(NSInteger)seconds;
-+(void)title:(NSString*)title message:(NSString*)message backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor;
-+(void)title:(NSString*)title message:(NSString*)message backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor time:(NSInteger)seconds;
-
-
-@property UIColor *defaultViewColor;
-@property UIColor *defaultTextColor;
-
--(void)title:(NSString*)title message:(NSString*)message backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor time:(NSInteger)seconds;
+@property (nonatomic, strong) NSString *title;
+@property (nonatomic, strong) NSString *message;
+@property (nonatomic, strong) UIColor *textColor;
+@property (nonatomic) NSInteger displayTime;
 
 @end
