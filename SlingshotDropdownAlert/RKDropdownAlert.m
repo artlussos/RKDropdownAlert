@@ -5,87 +5,152 @@
 //  Created by Richard Kim on 8/26/14.
 //  Copyright (c) 2014 Richard Kim. All rights reserved.
 //
-//  objective-c objc obj c
+
+/*
+
+ Copyright (c) 2014 Choong-Won Richard Kim <cwrichardkim@gmail.com>
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is furnished
+ to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+*/
 
 #import "RKDropdownAlert.h"
 
-//%%% CUSTOMIZE FOR DEFAULT SETTINGS
-// These values specify what the view will look like
-static int HEIGHT = 90; //height of the alert view
-static float ANIMATION_TIME = .3; //time it takes for the animation to complete in seconds
-static int X_BUFFER = 10; //buffer distance on each side for the text
-static int Y_BUFFER = 10; //buffer distance on top/bottom for the text
-static int TIME = 3; //default time in seconds before the view is hidden
-static int STATUS_BAR_HEIGHT = 20;
-static int FONT_SIZE = 14;
-NSString *DEFAULT_TITLE;
+@interface RKDropdownAlert()
+@property (nonatomic, strong) UILabel *rkTitleLabel;
+@property (nonatomic, strong) UILabel *rkMessageLabel;
+@end
 
-@implementation RKDropdownAlert{
-    UILabel *titleLabel;
-    UILabel *messageLabel;
-}
-@synthesize defaultTextColor;
-@synthesize defaultViewColor;
+@implementation RKDropdownAlert
 
-//////////////////////////////////////////////////////////
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%       customizable       %%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-
-//%%% CUSTOMIZE DEFAULT VALUES
-// These are the default value. For example, if you don't specify a color, then
-// your default color will be used (which is currently orange)
--(void)setupDefaultAttributes
++ (UIColor*)defaultTextColor
 {
-    defaultViewColor = [UIColor colorWithRed:0.98 green:0.66 blue:0.2 alpha:1];//%%% default color from slingshot
-    
-    defaultTextColor = [UIColor whiteColor];
-    DEFAULT_TITLE = @"Default Text Here"; //%%% this text can only be edited if you do not use the pod solution. check the repo's README for more information
-    
-    //%%% to change the default time, height, animation speed, fonts, etc check the top of the this file
+    return[UIColor whiteColor];
 }
 
-- (id)initWithFrame:(CGRect)frame
++ (UIColor*)defaultBackgroundColor
+{
+    return[UIColor darkGrayColor];
+}
+
++ (CGFloat)defaultHeight
+{
+    return 90;
+}
+
++ (CGFloat)defaultFontSize
+{
+    return 14.0;
+}
+
++ (CGFloat)defaultShowTime
+{
+    return 3.0;
+}
+
++ (CGFloat)defaultAnimationTime
+{
+    return 0.3;
+}
+
++ (UIFont*)defaultFont
+{
+    return [UIFont boldSystemFontOfSize:[RKDropdownAlert defaultFontSize]];
+}
+
+- (CGRect)titleFrame:(CGRect)frame
+{
+    return CGRectMake(10,
+                      CGRectGetHeight([UIApplication sharedApplication].statusBarFrame),
+                      CGRectGetWidth(frame) - (2 * 10),
+                      20);
+}
+
+- (CGRect)messageFrame:(CGRect)frame
+{
+    return CGRectMake(10,
+                      CGRectGetHeight([UIApplication sharedApplication].statusBarFrame) + 20,
+                      CGRectGetWidth(frame) - (2 * 10),
+                      20);
+}
+
+- (void)createTitleLabel:(CGRect)frame
+{
+    _rkTitleLabel = [[UILabel alloc]initWithFrame:[self titleFrame:frame]];
+
+    [_rkTitleLabel setFont:[RKDropdownAlert defaultFont]];
+    _rkTitleLabel.textColor = [RKDropdownAlert defaultTextColor];
+    _rkTitleLabel.textAlignment = NSTextAlignmentCenter;
+
+    [self addSubview:_rkTitleLabel];
+}
+
+- (void)createMessageLabel:(CGRect)frame
+{
+    _rkMessageLabel = [[UILabel alloc]initWithFrame:[self messageFrame:frame]];
+
+    [_rkMessageLabel setFont:[RKDropdownAlert defaultFont]];
+    _rkMessageLabel.textColor = [RKDropdownAlert defaultTextColor];
+    _rkMessageLabel.textAlignment = NSTextAlignmentCenter;
+
+    _rkMessageLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    _rkMessageLabel.numberOfLines = 1;
+
+    [self addSubview:_rkMessageLabel];
+}
+
+- (void)defaultValues
+{
+    _textColor = [RKDropdownAlert defaultTextColor];
+    _displayTime = [RKDropdownAlert defaultShowTime];
+}
+
+- (instancetype)init
+{
+    return [self initWithFrame:CGRectMake(0,
+                                          -[RKDropdownAlert defaultHeight],
+                                          [[UIScreen mainScreen]bounds].size.width,
+                                          [RKDropdownAlert defaultHeight])];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
-        [self setupDefaultAttributes];
-        
-        self.backgroundColor = defaultViewColor;
-        
-        //%%% title setup (the bolded text at the top of the view)
-        titleLabel = [[UILabel alloc]initWithFrame:CGRectMake(X_BUFFER, STATUS_BAR_HEIGHT, frame.size.width-2*X_BUFFER, 30)];
-        [titleLabel setFont:[UIFont fontWithName:@"Arial-BoldMT" size:FONT_SIZE]];
-        titleLabel.textColor = defaultTextColor;
-        titleLabel.textAlignment = NSTextAlignmentCenter;
-        [self addSubview:titleLabel];
-        
-        //%%% message setup (the regular text below the title)
-        messageLabel = [[UILabel alloc]initWithFrame:CGRectMake(X_BUFFER, STATUS_BAR_HEIGHT +Y_BUFFER*2.3, frame.size.width-2*X_BUFFER, 40)];
-        messageLabel.textColor = defaultTextColor;
-        messageLabel.font = [messageLabel.font fontWithSize:FONT_SIZE];
-        messageLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        messageLabel.numberOfLines = 2; // 2 lines ; 0 - dynamic number of lines
-        messageLabel.textAlignment = NSTextAlignmentCenter;
-        [self addSubview:messageLabel];
-        
+        self.backgroundColor = [RKDropdownAlert defaultBackgroundColor];
+        [self defaultValues];
+        [self createTitleLabel:frame];
+        [self createMessageLabel:frame];
+
         [self addTarget:self action:@selector(hideView:) forControlEvents:UIControlEventTouchUpInside];
     }
     return self;
 }
 
-
-//%%% button method (what happens when you touch the drop down view)
 -(void)viewWasTapped:(UIButton *)alertView
 {
-    //%%% CUSTOMIZE DEFAULT TAP ACTION
-    
     /*
-     eg: say you have a messaging component in your app and someone sends a message to the user. Here is where you would write the method that takes the user to the conversation with the person that sent them the message
+     eg: say you have a messaging component in your app and someone sends a message to the user.
+     Here is where you would write the method that takes the user
+     to the conversation with the person that sent them the message
      */
-    
+
     //%%% this hides the view, you can remove this if you don't want the view to disappear on tap
     [self hideView:alertView];
 }
@@ -93,12 +158,24 @@ NSString *DEFAULT_TITLE;
 -(void)hideView:(UIButton *)alertView
 {
     if (alertView) {
-        [UIView animateWithDuration:ANIMATION_TIME animations:^{
+        [UIView animateWithDuration:[RKDropdownAlert defaultAnimationTime] animations:^{
             CGRect frame = alertView.frame;
-            frame.origin.y = -HEIGHT;
+            frame.origin.y = -[RKDropdownAlert defaultHeight];
             alertView.frame = frame;
         }];
-        [self performSelector:@selector(removeView:) withObject:alertView afterDelay:ANIMATION_TIME];
+        [self performSelector:@selector(removeView:) withObject:alertView afterDelay:[RKDropdownAlert defaultAnimationTime]];
+    }
+}
+
+- (void)addView
+{
+    NSEnumerator *frontToBackWindows = [[[UIApplication sharedApplication]windows]reverseObjectEnumerator];
+
+    for (UIWindow *window in frontToBackWindows) {
+        if (window.windowLevel == UIWindowLevelNormal) {
+            [window.rootViewController.view addSubview:self];
+            break;
+        }
     }
 }
 
@@ -109,142 +186,54 @@ NSString *DEFAULT_TITLE;
     }
 }
 
-//
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%       customizable        %%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%          Ignore          %%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-//%%% these are necessary methods that call each other depending on which method you call. Generally shouldn't edit these unless you know what you're doing
-
-
-+(RKDropdownAlert*)alertView
+- (void)messageText
 {
-    RKDropdownAlert *alert = [[self alloc]initWithFrame:CGRectMake(0, -HEIGHT, [[UIScreen mainScreen]bounds].size.width, HEIGHT)];
-    return alert;
-}
+    if (self.message) {
+        self.rkMessageLabel.text = self.message;
+        if (![self isMessageTextOneLine]) {
+            self.rkMessageLabel.numberOfLines = 2;
 
-//%%% shows all the default stuff
-+(void)show
-{
-    [[self alertView]title:DEFAULT_TITLE message:nil backgroundColor:nil textColor:nil time:-1];
-}
-
-+(void)title:(NSString*)title
-{
-    [[self alertView]title:title message:nil backgroundColor:nil textColor:nil time:-1];
-}
-
-+(void)title:(NSString*)title time:(NSInteger)seconds
-{
-    [[self alertView]title:title message:nil backgroundColor:nil textColor:nil time:seconds];
-}
-
-+(void)title:(NSString*)title backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor
-{
-    [[self alertView]title:title message:nil backgroundColor:backgroundColor textColor:textColor time:-1];
-}
-
-+(void)title:(NSString*)title backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor time:(NSInteger)seconds
-{
-    [[self alertView]title:title message:nil backgroundColor:backgroundColor textColor:textColor time:seconds];
-}
-
-+(void)title:(NSString*)title message:(NSString*)message
-{
-    [[self alertView]title:title message:message backgroundColor:nil textColor:nil time:-1];
-}
-
-+(void)title:(NSString*)title message:(NSString*)message time:(NSInteger)seconds
-{
-    [[self alertView]title:title message:message backgroundColor:nil textColor:nil time:seconds];
-}
-
-+(void)title:(NSString*)title message:(NSString*)message backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor
-{
-    [[self alertView]title:title message:message backgroundColor:backgroundColor textColor:textColor time:-1];
-}
-
-+(void)title:(NSString*)title message:(NSString*)message backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor time:(NSInteger)seconds
-{
-    [[self alertView]title:title message:message backgroundColor:backgroundColor textColor:textColor time:seconds];
-}
-
--(void)title:(NSString*)title message:(NSString*)message backgroundColor:(UIColor*)backgroundColor textColor:(UIColor*)textColor time:(NSInteger)seconds
-{
-    NSInteger time = seconds;
-    titleLabel.text = title;
-    
-    if (message) {
-        messageLabel.text = message;
-        if ([self messageTextIsOneLine]) {
-            CGRect frame = titleLabel.frame;
-            frame.origin.y = STATUS_BAR_HEIGHT+5;
-            titleLabel.frame = frame;
+            CGRect rect = self.rkMessageLabel.frame;
+            rect.size.height *= 2;
+            self.rkMessageLabel.frame = rect;
         }
-    } else {
-        CGRect frame = titleLabel.frame;
-        frame.size.height = HEIGHT-2*Y_BUFFER-STATUS_BAR_HEIGHT;
-        frame.origin.y = Y_BUFFER+STATUS_BAR_HEIGHT;
-        titleLabel.frame = frame;
     }
-    
-    if (backgroundColor) {
-        self.backgroundColor = backgroundColor;
+    else {
+        CGRect rect = self.rkTitleLabel.frame;
+        rect.origin.y = [RKDropdownAlert defaultHeight]/2;
+        self.rkTitleLabel.frame = rect;
     }
-    if (textColor) {
-        titleLabel.textColor = textColor;
-        messageLabel.textColor = textColor;
+}
+
+-(void)show
+{
+    self.rkTitleLabel.text = self.title;
+    [self messageText];
+
+    self.rkTitleLabel.textColor = self.textColor;
+    self.rkMessageLabel.textColor = self.textColor;
+
+    if (!self.superview){
+        [self addView];
     }
-    
-    if (seconds == -1) {
-        time = TIME;
-    }
-    
-    if(!self.superview){
-        NSEnumerator *frontToBackWindows = [[[UIApplication sharedApplication]windows]reverseObjectEnumerator];
-        
-        for (UIWindow *window in frontToBackWindows)
-            if (window.windowLevel == UIWindowLevelNormal) {
-                [window.rootViewController.view addSubview:self];
-                break;
-            }
-    }
-    
-    [UIView animateWithDuration:ANIMATION_TIME animations:^{
+
+    [UIView animateWithDuration:[RKDropdownAlert defaultAnimationTime] animations:^{
         CGRect frame = self.frame;
         frame.origin.y = 0;
         self.frame = frame;
     }];
-    
-    [self performSelector:@selector(hideView:) withObject:self afterDelay:time+ANIMATION_TIME];
+
+    [self performSelector:@selector(hideView:)
+               withObject:self
+               afterDelay:self.displayTime + [RKDropdownAlert defaultAnimationTime]];
 }
 
-
--(BOOL)messageTextIsOneLine
+-(BOOL)isMessageTextOneLine
 {
-    CGSize size = [messageLabel.text sizeWithAttributes:
-                   @{NSFontAttributeName:
-                         [UIFont systemFontOfSize:FONT_SIZE]}];
-    if (size.width > messageLabel.frame.size.width) {
-        return NO;
-    }
-    
-    return YES;
+    CGSize size = [self.rkMessageLabel.text sizeWithAttributes:
+                   @{NSFontAttributeName:[UIFont systemFontOfSize:[RKDropdownAlert defaultFontSize]]}];
+
+    return size.width > CGRectGetWidth(self.rkMessageLabel.frame) ? NO : YES;
 }
 
-//
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%           Ignore          %%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//////////////////////////////////////////////////////////
 @end
