@@ -76,18 +76,24 @@
 
 - (CGRect)titleFrame:(CGRect)frame
 {
-    return CGRectMake(10,
+    NSInteger edgeBuffer = 10;
+    NSInteger labelHeight = 20;
+
+    return CGRectMake(edgeBuffer,
                       CGRectGetHeight([UIApplication sharedApplication].statusBarFrame),
-                      CGRectGetWidth(frame) - (2 * 10),
-                      20);
+                      CGRectGetWidth(frame) - (2 * edgeBuffer),
+                      labelHeight);
 }
 
 - (CGRect)messageFrame:(CGRect)frame
 {
-    return CGRectMake(10,
-                      CGRectGetHeight([UIApplication sharedApplication].statusBarFrame) + 20,
-                      CGRectGetWidth(frame) - (2 * 10),
-                      20);
+    NSInteger edgeBuffer = 10;
+    NSInteger labelHeight = 20;
+
+    return CGRectMake(edgeBuffer,
+                      CGRectGetHeight([UIApplication sharedApplication].statusBarFrame) + labelHeight,
+                      CGRectGetWidth(frame) - (2 * edgeBuffer),
+                      labelHeight);
 }
 
 - (void)createTitleLabel:(CGRect)frame
@@ -119,6 +125,8 @@
 {
     _textColor = [RKDropdownAlert defaultTextColor];
     _displayTime = [RKDropdownAlert defaultShowTime];
+
+    self.backgroundColor = [RKDropdownAlert defaultBackgroundColor];
 }
 
 - (instancetype)init
@@ -133,25 +141,20 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        self.backgroundColor = [RKDropdownAlert defaultBackgroundColor];
         [self defaultValues];
         [self createTitleLabel:frame];
         [self createMessageLabel:frame];
 
-        [self addTarget:self action:@selector(hideView:) forControlEvents:UIControlEventTouchUpInside];
+        [self addTarget:self action:@selector(viewWasTapped:) forControlEvents:UIControlEventTouchUpInside];
     }
     return self;
 }
 
 -(void)viewWasTapped:(UIButton *)alertView
 {
-    /*
-     eg: say you have a messaging component in your app and someone sends a message to the user.
-     Here is where you would write the method that takes the user
-     to the conversation with the person that sent them the message
-     */
+    [self notifyDelegateTapped];
 
-    //%%% this hides the view, you can remove this if you don't want the view to disappear on tap
+    // hides the view, you can remove this if you don't want the view to disappear on tap
     [self hideView:alertView];
 }
 
@@ -163,17 +166,28 @@
             frame.origin.y = -[RKDropdownAlert defaultHeight];
             alertView.frame = frame;
         }];
+
         [self performSelector:@selector(removeView:) withObject:alertView afterDelay:[RKDropdownAlert defaultAnimationTime]];
     }
 }
 
 - (void)addView
 {
-    NSEnumerator *frontToBackWindows = [[[UIApplication sharedApplication]windows]reverseObjectEnumerator];
+    BOOL alreadyAdded = NO;
 
+    NSEnumerator *frontToBackWindows = [[[UIApplication sharedApplication]windows]reverseObjectEnumerator];
     for (UIWindow *window in frontToBackWindows) {
         if (window.windowLevel == UIWindowLevelNormal) {
-            [window.rootViewController.view addSubview:self];
+
+            for(UIView *subview in window.rootViewController.view.subviews) {
+                if([subview isKindOfClass:[RKDropdownAlert class]]) {
+                    alreadyAdded = YES;
+                }
+            }
+
+            if (alreadyAdded == NO) {
+                [window.rootViewController.view addSubview:self];
+            }
             break;
         }
     }
@@ -231,9 +245,18 @@
 -(BOOL)isMessageTextOneLine
 {
     CGSize size = [self.rkMessageLabel.text sizeWithAttributes:
-                   @{NSFontAttributeName:[UIFont systemFontOfSize:[RKDropdownAlert defaultFontSize]]}];
+                   @{NSFontAttributeName:[UIFont boldSystemFontOfSize:[RKDropdownAlert defaultFontSize]]}];
 
     return size.width > CGRectGetWidth(self.rkMessageLabel.frame) ? NO : YES;
 }
+
+- (void)notifyDelegateTapped
+{
+    __strong id<RKDropdownAlertDelegate> delegate = self.delegate;
+    if (delegate) {
+        [delegate viewTapped];
+    }
+}
+
 
 @end
