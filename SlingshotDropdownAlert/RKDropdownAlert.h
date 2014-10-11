@@ -32,12 +32,20 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol RKDropdownAlertDelegate;
+
 @interface RKDropdownAlert : UIButton
 - (void)show;
-
+@property (nonatomic, weak) id<RKDropdownAlertDelegate> delegate;
 @property (nonatomic, strong) NSString *title;
 @property (nonatomic, strong) NSString *message;
 @property (nonatomic, strong) UIColor *textColor;
 @property (nonatomic) NSInteger displayTime;
 
 @end
+
+@protocol RKDropdownAlertDelegate <NSObject>
+@optional
+- (void)viewTapped;
+@end
+
